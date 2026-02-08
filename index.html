@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mines Prediction Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-green: #00ff88;
+            --neon-red: #ff3366;
+            --neon-blue: #00eeff;
+            --neon-purple: #cc00ff;
+            --dark-bg: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 238, 255, 0.6);
+            --text-color: #e0e0e0;
+            --light-bg: #f0f2f5;
+            --light-card-bg: rgba(255, 255, 255, 0.8);
+            --light-text-color: #333;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg), #16213e, #0f3460);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-color 0.5s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, var(--light-bg), #e0e6ed, #d1d9e0);
+            color: var(--light-text-color);
+        }
+
+        .background-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: moveParticle 15s infinite alternate;
+        }
+
+        .particle:nth-child(1) { width: 40px; height: 40px; top: 10%; left: 15%; animation-duration: 18s; background: var(--neon-green); }
+        .particle:nth-child(2) { width: 60px; height: 60px; top: 20%; left: 80%; animation-duration: 22s; background: var(--neon-purple); }
+        .particle:nth-child(3) { width: 30px; height: 30px; top: 50%; left: 5%; animation-duration: 16s; }
+        .particle:nth-child(4) { width: 50px; height: 50px; top: 70%; left: 90%; animation-duration: 20s; background: var(--neon-red); }
+        .particle:nth-child(5) { width: 70px; height: 70px; top: 85%; left: 30%; animation-duration: 25s; }
+
+        @keyframes moveParticle {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+            50% { transform: translate(100px, 100px) scale(1.2); opacity: 0.8; }
+            100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        body.light-mode .container {
+            background: var(--light-card-bg);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            margin-bottom: 20px;
+            font-size: 2em;
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+        }
+        body.light-mode h1 {
+            color: #333;
+            text-shadow: none;
+        }
+
+        .platform-selector, .seed-entry {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .platform-selector label, .seed-entry label {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: var(--text-color);
+            transition: color 0.5s ease;
+        }
+        body.light-mode .platform-selector label, body.light-mode .seed-entry label {
+            color: var(--light-text-color);
+        }
+
+        #platform-select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--neon-blue);
+            background-color: rgba(0, 0, 0, 0.3);
+            color: var(--text-color);
+            font-size: 1em;
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--neon-blue);
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300eeff' width='18px' height='18px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        body.light-mode #platform-select {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            color: var(--light-text-color);
+            box-shadow: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333' width='18px' height='18px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+        }
+        #platform-select:hover {
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        #seed-input {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--neon-purple);
+            background-color: rgba(0, 0, 0, 0.3);
+            color: var(--text-color);
+            font-size: 1em;
+            outline: none;
+            box-shadow: 0 0 8px var(--neon-purple);
+            transition: all 0.3s ease;
+            width: 80%;
+            max-width: 300px;
+        }
+        body.light-mode #seed-input {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            color: var(--light-text-color);
+            box-shadow: none;
+        }
+        #seed-input:focus {
+            box-shadow: 0 0 15px var(--neon-purple);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            margin: 30px auto;
+            width: 350px;
+            height: 350px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 0 20px var(--border-glow);
+            border: 1px solid var(--border-glow);
+            transition: all 0.3s ease;
+        }
+        body.light-mode .grid-container {
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .grid-tile {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        body.light-mode .grid-tile {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 238, 255, 0.4);
+            border-color: var(--neon-blue);
+        }
+
+        .grid-tile.safe {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 15px var(--neon-green), 0 0 30px var(--neon-green);
+            border-color: var(--neon-green);
+            animation: pulse-green 1.5s infinite alternate, pop-in 0.3s ease-out forwards;
+        }
+        body.light-mode .grid-tile.safe {
+            background: rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+        }
+
+        .grid-tile.unsafe {
+            background: rgba(255, 51, 102, 0.2);
+            box-shadow: 0 0 15px var(--neon-red), 0 0 30px var(--neon-red);
+            border-color: var(--neon-red);
+            animation: pulse-red 1.5s infinite alternate, pop-in 0.3s ease-out forwards;
+        }
+        body.light-mode .grid-tile.unsafe {
+            background: rgba(255, 51, 102, 0.4);
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.6);
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green, 0.6); }
+            100% { box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green, 0.8); }
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 10px var(--neon-red), 0 0 20px var(--neon-red, 0.6); }
+            100% { box-shadow: 0 0 20px var(--neon-red), 0 0 40px var(--neon-red, 0.8); }
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .grid-tile span {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 8px currentColor;
+        }
+
+        .grid-tile.revealed span {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .button-group {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .app-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .app-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.7s ease;
+            border-radius: 50%;
+            z-index: 0;
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        .app-button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .app-button:active {
+            transform: translateY(2px);
+        }
+
+        #predict-btn {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+        #predict-btn:hover {
+            box-shadow: 0 0 25px var(--neon-green);
+        }
+
+        #reset-btn {
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-red));
+            box-shadow: 0 0 15px var(--neon-purple);
+        }
+        #reset-btn:hover {
+            box-shadow: 0 0 25px var(--neon-purple);
+        }
+
+        .join-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .join-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        .join-button:hover::before {
+            left: 0;
+        }
+
+        .join-button i {
+            font-size: 1.2em;
+            z-index: 1;
+        }
+
+        .join-button span {
+            z-index: 1;
+        }
+
+        .telegram-btn {
+            background: linear-gradient(45deg, #0088cc, #33bbee);
+        }
+
+        .youtube-btn {
+            background: linear-gradient(45deg, #cc0000, #ff0000);
+        }
+
+        .toggle-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .toggle-switch {
+            width: 60px;
+            height: 30px;
+            background-color: #333;
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background-color: var(--neon-blue);
+        }
+
+        .toggle-switch .slider {
+            width: 26px;
+            height: 26px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active .slider {
+            transform: translateX(30px);
+        }
+
+        .toggle-container span {
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: var(--text-color);
+            transition: color 0.5s ease;
+        }
+        body.light-mode .toggle-container span {
+            color: var(--light-text-color);
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.5s ease;
+        }
+        body.light-mode footer {
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                width: 95%;
+            }
+            .grid-container {
+                width: 300px;
+                height: 300px;
+                gap: 8px;
+            }
+            .grid-tile {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5em;
+            }
+            h1 {
+                font-size: 1.6em;
+            }
+            .app-button, .join-button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .join-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .toggle-container {
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+        <div class="toggle-container">
+            <div class="toggle-switch" id="darkModeToggle">
+                <div class="slider"></div>
+            </div>
+            <span id="toggleText">Dark Mode</span>
+        </div>
+
+        <h1 id="platform-display">Mines Prediction Tool</h1>
+
+        <div class="platform-selector">
+            <label for="platform-select">Select Game Platform:</label>
+            <select id="platform-select">
+                <option value="Stake">Stake</option>
+                <option value="1win">1win</option>
+                <option value="Tashan Win">Tashan Win</option>
+                <option value="Bet365">Bet365</option>
+            </select>
+        </div>
+
+        <div class="seed-entry">
+            <label for="seed-input">Enter Your Seeds:</label>
+            <input type="text" id="seed-input" placeholder="e.g., your_unique_seed_123">
+        </div>
+
+        <div class="grid-container" id="mines-grid">
+            <!-- Tiles will be generated here by JavaScript -->
+        </div>
+
+        <div class="button-group">
+            <button class="app-button" id="predict-btn">Predict Safe Mines</button>
+            <button class="app-button" id="reset-btn">Reset Game</button>
+        </div>
+
+        <div class="button-group join-buttons" style="margin-top: 25px;">
+            <a href="https://t.me/apchhck" target="_blank" class="join-button telegram-btn">
+                <i class="fab fa-telegram-plane"></i> <span>Join Telegram</span>
+            </a>
+            <a href="https://www.youtube.com/yourchannel" target="_blank" class="join-button youtube-btn">
+                <i class="fab fa-youtube"></i> <span>Join YouTube</span>
+            </a>
+        </div>
+
+        <footer>
+            ⚡ Created Apache hacking
+        </footer>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        const platformSelect = document.getElementById('platform-select');
+        const platformDisplay = document.getElementById('platform-display');
+        const seedInput = document.getElementById('seed-input');
+        const minesGrid = document.getElementById('mines-grid');
+        const predictBtn = document.getElementById('predict-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const toggleText = document.getElementById('toggleText');
+
+        let isPredicted = false;
+
+        // Initialize grid
+        function createGrid() {
+            minesGrid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('grid-tile');
+                minesGrid.appendChild(tile);
+            }
+        }
+
+        // Update platform display
+        platformSelect.addEventListener('change', () => {
+            platformDisplay.textContent = platformSelect.value + ' Mines Prediction Tool';
+        });
+
+        // Prediction Logic
+        predictBtn.addEventListener('click', () => {
+            if (isPredicted) return; // Prevent multiple predictions without reset
+
+            const tiles = Array.from(minesGrid.children);
+            const seed = seedInput.value;
+            let random;
+
+            // Simple pseudo-random for demonstration based on seed
+            if (seed) {
+                let hash = 0;
+                for (let i = 0; i < seed.length; i++) {
+                    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                random = new Math.seedrandom(hash); // Using a seeded random library for consistency
+            } else {
+                random = Math.random;
+            }
+
+            // Shuffle tiles to get random safe positions
+            const shuffledTiles = tiles.sort(() => random() - 0.5);
+
+            // Select 5 safe mines
+            for (let i = 0; i < 5; i++) {
+                const safeTile = shuffledTiles[i];
+                safeTile.classList.add('safe', 'revealed');
+                safeTile.innerHTML = '<span>💎</span>';
+            }
+
+            // Mark remaining 20 as unsafe
+            for (let i = 5; i < 25; i++) {
+                const unsafeTile = shuffledTiles[i];
+                unsafeTile.classList.add('unsafe', 'revealed');
+                unsafeTile.innerHTML = '<span>💣</span>';
+            }
+
+            isPredicted = true;
+        });
+
+        // Reset Game
+        resetBtn.addEventListener('click', () => {
+            const tiles = Array.from(minesGrid.children);
+            tiles.forEach(tile => {
+                tile.classList.remove('safe', 'unsafe', 'revealed');
+                tile.innerHTML = '';
+            });
+            isPredicted = false;
+        });
+
+        // Dark/Light Mode Toggle
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            darkModeToggle.classList.toggle('active');
+            if (body.classList.contains('light-mode')) {
+                toggleText.textContent = 'Light Mode';
+            } else {
+                toggleText.textContent = 'Dark Mode';
+            }
+        });
+
+        // Initial setup
+        createGrid();
+        platformDisplay.textContent = platformSelect.value + ' Mines Prediction Tool';
+
+        // Integrate a simple seeded random for demo purposes (you'd use a more robust one in production)
+        // This is a minimal example, in a real app you might use a library like 'seedrandom'
+        // For actual cryptographic seeding, you'd need server-side interaction.
+        (function(global) {
+            function Masher() {
+                var n = 0xefc8249d;
+                return function(data) {
+                    data = data.toString();
+                    for (var i = 0; i < data.length; i++) {
+                        n += data.charCodeAt(i);
+                        var h = 0.02519603282416938 * n;
+                        n = h >>> 0;
+                        h -= n;
+                        h *= n;
+                        n = h >>> 0;
+                        h -= n;
+                        n += h * 0x100000000; // 2^32
+                    }
+                    return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+                };
+            }
+
+            function alea(seed) {
+                var mash = Masher();
+                var s0 = mash(' ');
+                var s1 = mash(' ');
+                var s2 = mash(' ');
+                var c = 1;
+                var x = function() {
+                    var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+                    s0 = s1;
+                    s1 = s2;
+                    return s2 = t - (c = t | 0);
+                };
+                x.version = 'Alea.0.9';
+                x.args = arguments;
+                // Seed the generator
+                for (var i = 0; i < arguments.length; i++) {
+                    s0 -= mash(arguments[i]);
+                    if (s0 < 0) {
+                        s0 += 1;
+                    }
+                    s1 -= mash(arguments[i]);
+                    if (s1 < 0) {
+                        s1 += 1;
+                    }
+                    s2 -= mash(arguments[i]);
+                    if (s2 < 0) {
+                        s2 += 1;
+                    }
+                }
+                return x;
+            }
+
+            global.Math.seedrandom = function(seed) {
+                return alea(seed);
+            };
+        })(this);
+
+    </script>
+</body>
+</html>
